@@ -6,6 +6,7 @@
 <title>Trip Roulette — Family Activity Finder</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
+  html { overflow-x: hidden; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root { --primary: #3C3489; --secondary: #5F5E5A; --primary-dark: #26215C; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 70%, black) 0%, var(--primary) 40%, var(--secondary) 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; transition: background 1.2s ease; }
@@ -67,6 +68,28 @@
   .pill { font-size: 12px; padding: 5px 9px; border-radius: 8px; border: 1px solid #eee; background: #fafafa; color: #555; text-align: center; }
   .empty-state { text-align: center; color: #999; font-size: 14px; padding: 2rem 1rem; display: none; }
   footer { color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 1.5rem; text-align: center; }
+  @media (max-width: 480px) {
+    body { padding: 1.25rem 0.75rem; }
+    h1 { font-size: 1.5rem; }
+    .subtitle { font-size: 0.875rem; }
+    .card { padding: 1.25rem; gap: 12px; border-radius: 14px; }
+    .field-label { font-size: 13px; }
+    .loc-row { flex-wrap: wrap; }
+    .loc-row input { min-width: 0; }
+    .gps-btn { font-size: 12px; padding: 0 10px; }
+    .mbtn { font-size: 12px; padding: 8px 4px; }
+    .search-btn { font-size: 14px; padding: 11px 0; }
+    .reel-frame { max-width: 100%; }
+    .reel-window { height: 190px; }
+    .reel-card { height: 66px; padding: 0 1rem; }
+    .reel-card-name { font-size: 15px; }
+    .reel-card-cat { font-size: 10px; }
+    .reel-center-line { height: 66px; }
+    .spin-btn { font-size: 14px; padding: 11px 32px; }
+    .rname { font-size: 19px; }
+    .rdesc { font-size: 13px; }
+    .pill-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
 </style>
 </head>
 <body>
@@ -326,8 +349,13 @@ async function fetchActivities(){
   }
 }
 
-const CARD_H = 76;
+let CARD_H = 76;
 let reelOrder = [];
+
+function getCardHeight(){
+  const sample = document.querySelector('.reel-card');
+  return sample ? sample.getBoundingClientRect().height : CARD_H;
+}
 
 function renderReel(){
   const n = activities.length;
@@ -337,6 +365,7 @@ function renderReel(){
   strip.style.transform = 'translateY(0px)';
   strip.innerHTML = reelOrder.map(i=>cardHTML(activities[i])).join('');
   requestAnimationFrame(()=>{
+    CARD_H = getCardHeight();
     const window_ = document.querySelector('.reel-window');
     const h = window_.clientHeight || 220;
     const offset = (h/2) - (CARD_H/2);
@@ -356,6 +385,7 @@ function spin(){
   spinBtn.disabled = true;
   spinBtn.classList.remove('pulse');
 
+  CARD_H = getCardHeight();
   const n = activities.length;
   const targetIdx = Math.floor(Math.random()*n);
 
