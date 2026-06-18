@@ -47,6 +47,11 @@
   .reel-arrow-left { left: -4px; }
   .reel-arrow-right { right: -4px; }
   .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s; }
+  .spin-btn.pulse { animation: spinPulse 1.8s ease-in-out infinite; }
+  @keyframes spinPulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); transform: scale(1); }
+    50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); transform: scale(1.04); }
+  }
   .spin-btn:hover { background: var(--primary-dark); }
   .spin-btn:active { transform: scale(0.98); }
   .spin-btn:disabled { background: #aaa; cursor: not-allowed; }
@@ -292,6 +297,7 @@ async function fetchActivities(){
     document.getElementById('rdesc').textContent=''; document.getElementById('rtag').style.display='none';
     document.getElementById('countHint').textContent=activities.length+' activities found within '+drive+' min of '+loc;
     document.getElementById('resultsWrap').style.display='flex';
+    document.getElementById('spinBtn').classList.add('pulse');
     renderReel(); renderPills();
     document.getElementById('searchBtn').disabled=false;
   } catch(e){
@@ -326,7 +332,9 @@ function cardHTML(a){
 function spin(){
   if(spinning || !activities.length) return;
   spinning = true;
-  document.getElementById('spinBtn').disabled = true;
+  const spinBtn = document.getElementById('spinBtn');
+  spinBtn.disabled = true;
+  spinBtn.classList.remove('pulse');
 
   const n = activities.length;
   const targetIdx = Math.floor(Math.random()*n);
@@ -355,7 +363,9 @@ function spin(){
       requestAnimationFrame(animate);
     } else {
       spinning = false;
-      document.getElementById('spinBtn').disabled = false;
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.disabled = false;
+      spinBtn.classList.add('pulse');
       const picked = activities[targetIdx];
       document.getElementById('rname').textContent = picked.name;
       document.getElementById('rdesc').textContent = picked.desc;
