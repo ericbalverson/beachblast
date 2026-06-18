@@ -171,7 +171,10 @@ async function fetchActivities(){
       body:JSON.stringify({messages:[{role:'user',content:prompt}]})
     });
     const data=await res.json();
+    if(data.error){ throw new Error(data.error+(data.raw?' — '+data.raw:'')); }
+    if(data.type==='error'){ throw new Error(data.error?.message||JSON.stringify(data)); }
     const text=data.content?.find(b=>b.type==='text')?.text||'';
+    if(!text) throw new Error('Empty response from API. Check your API key in Vercel environment variables.');
     let parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     if(tripMode!=='both') parsed=parsed.filter(a=>a.type===tripMode);
     activities=parsed;
