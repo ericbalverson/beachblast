@@ -291,8 +291,8 @@ async function fetchActivities(){
     document.getElementById('rname').textContent='Spin to find out!';
     document.getElementById('rdesc').textContent=''; document.getElementById('rtag').style.display='none';
     document.getElementById('countHint').textContent=activities.length+' activities found within '+drive+' min of '+loc;
-    renderReel(); renderPills();
     document.getElementById('resultsWrap').style.display='flex';
+    renderReel(); renderPills();
     document.getElementById('searchBtn').disabled=false;
   } catch(e){
     status.textContent='Something went wrong: '+e.message;
@@ -310,9 +310,12 @@ function renderReel(){
   const strip = document.getElementById('reelStrip');
   strip.style.transform = 'translateY(0px)';
   strip.innerHTML = reelOrder.map(i=>cardHTML(activities[i])).join('');
-  const window_ = document.querySelector('.reel-window');
-  const offset = (window_.clientHeight/2) - (CARD_H/2);
-  strip.style.top = offset + 'px';
+  requestAnimationFrame(()=>{
+    const window_ = document.querySelector('.reel-window');
+    const h = window_.clientHeight || 220;
+    const offset = (h/2) - (CARD_H/2);
+    strip.style.top = offset + 'px';
+  });
 }
 
 function cardHTML(a){
