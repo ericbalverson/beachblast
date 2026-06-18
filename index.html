@@ -3,48 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beach Blast — Family Activity Roulette</title>
+<title>Beach Blast — Family Activity Finder</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0c3a6b 0%, #1565a8 40%, #0f8a6e 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
   h1 { color: #fff; font-size: 2rem; font-weight: 600; margin-bottom: 0.25rem; text-align: center; }
   .subtitle { color: rgba(255,255,255,0.75); font-size: 1rem; margin-bottom: 1.5rem; text-align: center; }
-  .card { background: rgba(255,255,255,0.97); border-radius: 18px; padding: 1.75rem; width: 100%; max-width: 600px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); }
-  .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
-  .toggle-bar { display: flex; border: 1.5px solid #ddd; border-radius: 10px; overflow: hidden; flex: 1; }
-  .tbtn { flex: 1; padding: 9px 16px; font-size: 14px; font-weight: 500; border: none; background: transparent; color: #666; cursor: pointer; transition: background 0.15s, color 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .tbtn.active { background: #1565a8; color: #fff; }
-  .count-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #f0f0f0; color: #666; white-space: nowrap; }
-  .wheel-wrap { position: relative; display: flex; justify-content: center; margin-bottom: 1.25rem; }
-  .needle { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 30px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
+  .card { background: rgba(255,255,255,0.97); border-radius: 18px; padding: 1.75rem; width: 100%; max-width: 600px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 14px; }
+  .field-label { font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block; }
+  .loc-row { display: flex; gap: 8px; align-items: center; }
+  .loc-row input { flex: 1; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 9px; font-size: 14px; outline: none; transition: border-color 0.15s; }
+  .loc-row input:focus { border-color: #1565a8; }
+  .gps-btn { padding: 0 14px; height: 38px; font-size: 13px; border-radius: 9px; border: 1.5px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: background 0.15s; }
+  .gps-btn:hover { background: #eaeaea; }
+  .gps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .gps-status { font-size: 11px; color: #999; min-height: 16px; margin-top: 4px; }
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  .slider-row input[type=range] { flex: 1; accent-color: #1565a8; }
+  .slider-val { font-size: 14px; font-weight: 600; color: #1565a8; min-width: 55px; }
+  .mode-bar { display: flex; border: 1.5px solid #ddd; border-radius: 9px; overflow: hidden; }
+  .mbtn { flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 500; border: none; background: transparent; color: #666; cursor: pointer; transition: background 0.15s, color 0.15s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .mbtn.active { background: #1565a8; color: #fff; }
+  .search-btn { padding: 12px 0; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, transform 0.1s; }
+  .search-btn:hover { background: #0c4a8a; }
+  .search-btn:active { transform: scale(0.98); }
+  .search-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .status { font-size: 13px; color: #666; text-align: center; padding: 0.75rem 0; display: none; }
+  .results-wrap { display: none; flex-direction: column; align-items: center; gap: 1rem; width: 100%; }
+  .count-hint { font-size: 12px; color: #999; text-align: center; }
+  .wheel-wrap { position: relative; display: flex; justify-content: center; }
+  .needle { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 28px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
   canvas { border-radius: 50%; display: block; }
-  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; transition: background 0.15s, transform 0.1s; margin-bottom: 1.25rem; }
+  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; transition: background 0.15s, transform 0.1s; }
   .spin-btn:hover { background: #0c4a8a; }
   .spin-btn:active { transform: scale(0.98); }
   .spin-btn:disabled { background: #aaa; cursor: not-allowed; }
-  .result-card { background: #f0f6ff; border: 1.5px solid #b3d0f7; border-radius: 12px; padding: 1.25rem; text-align: center; min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; margin-bottom: 1.5rem; }
+  .result-card { width: 100%; background: #f0f6ff; border: 1.5px solid #b3d0f7; border-radius: 12px; padding: 1.25rem; text-align: center; min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
   .rlabel { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
-  .rname { font-size: 22px; font-weight: 600; color: #1565a8; }
-  .rdesc { font-size: 14px; color: #555; margin-top: 2px; }
-  .rtag { font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; font-weight: 500; display: none; }
-  .cat-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin: 1rem 0 0.4rem; }
+  .rname { font-size: 22px; font-weight: 700; color: #1565a8; }
+  .rdesc { font-size: 14px; color: #555; margin-top: 3px; }
+  .rtag { font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; font-weight: 600; display: none; }
+  .cat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 10px 0 5px; }
   .pill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 6px; }
   .pill { font-size: 12px; padding: 5px 9px; border-radius: 8px; border: 1px solid #eee; background: #fafafa; color: #555; text-align: center; }
-  footer { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 1.5rem; text-align: center; }
+  .empty-state { text-align: center; color: #999; font-size: 14px; padding: 2rem 1rem; display: none; }
+  footer { color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 1.5rem; text-align: center; }
 </style>
 </head>
 <body>
 <h1>🏖️ Beach Blast</h1>
-<p class="subtitle">Family Activity Roulette — 80 coastal ideas, spin to decide</p>
+<p class="subtitle">AI-powered family activity finder for coastal trips</p>
+
 <div class="card">
-  <div class="top-bar">
-    <div class="toggle-bar">
-      <button class="tbtn active" id="btn-outside" onclick="setMode('outside')">☀️ Outside</button>
-      <button class="tbtn" id="btn-inside" onclick="setMode('inside')">🏠 Inside</button>
+  <div>
+    <span class="field-label">📍 Where are you staying?</span>
+    <div class="loc-row">
+      <input type="text" id="location" placeholder="e.g. Alligator Point, FL">
+      <button class="gps-btn" id="gpsBtn" onclick="useGPS()">
+        <i class="ti ti-current-location"></i> Use GPS
+      </button>
     </div>
-    <span class="count-badge" id="countBadge">40 activities</span>
+    <div class="gps-status" id="gpsStatus"></div>
   </div>
+
+  <div>
+    <span class="field-label">🕐 Max drive time</span>
+    <div class="slider-row">
+      <input type="range" id="driveSlider" min="10" max="120" step="5" value="30" oninput="document.getElementById('driveVal').textContent=this.value+' min'">
+      <span class="slider-val" id="driveVal">30 min</span>
+    </div>
+  </div>
+
+  <div>
+    <span class="field-label">☀️ Activity type</span>
+    <div class="mode-bar">
+      <button class="mbtn active" id="mb-both" onclick="setMode('both')">Everything</button>
+      <button class="mbtn" id="mb-outside" onclick="setMode('outside')">☀️ Outside</button>
+      <button class="mbtn" id="mb-inside" onclick="setMode('inside')">🏠 Inside</button>
+    </div>
+  </div>
+
+  <button class="search-btn" id="searchBtn" onclick="fetchActivities()">
+    🔍 Find activities near me
+  </button>
+</div>
+
+<div class="status" id="statusMsg"></div>
+
+<div class="results-wrap" id="resultsWrap">
+  <p class="count-hint" id="countHint"></p>
   <div class="wheel-wrap">
     <div class="needle"></div>
     <canvas id="wheel" width="340" height="340"></canvas>
@@ -52,206 +100,154 @@
   <button class="spin-btn" id="spinBtn" onclick="spin()">▶ Spin the Wheel</button>
   <div class="result-card">
     <span class="rlabel">Your activity</span>
-    <span class="rname" id="rname">Spin the wheel to find out!</span>
+    <span class="rname" id="rname">Spin to find out!</span>
     <span class="rdesc" id="rdesc"></span>
     <span class="rtag" id="rtag"></span>
   </div>
-  <div id="catSection"></div>
+  <div style="width:100%;max-width:560px;" id="pillSection"></div>
 </div>
+
+<div class="empty-state" id="emptyState">
+  😕 No activities found. Try increasing your drive time or changing your location.
+</div>
+
 <footer>Built with ❤️ for the Alverson beach week</footer>
 
 <script>
-const cats = {
-  outside: [
-    { cat:"On the water", color:"#185FA5", items:[
-      { name:"Boogie boarding", desc:"Rent boards at the beach shack — even first-timers catch waves in 10 minutes." },
-      { name:"Jet ski rental", desc:"30–60 min guided rides — teens will beg to go again." },
-      { name:"Kayak tour", desc:"Sit-on-top rentals for tidal creeks, inlets, or open water." },
-      { name:"Stand-up paddleboard", desc:"Race each other across the inlet on calmer days." },
-      { name:"Parasailing", desc:"Teens can ride tandem — incredible views, 10 min ride." },
-      { name:"Dolphin watch cruise", desc:"Short boat tours often guarantee sightings; truly memorable." },
-      { name:"Deep sea fishing charter", desc:"Half-day trip targeting mahi, snapper, or grouper depending on season." },
-      { name:"Snorkeling trip", desc:"Rent gear or book a guided boat trip to a nearshore reef." },
-      { name:"Sunset sailing cruise", desc:"Many marinas offer 2-hr family sails — gorgeous from the water." },
-      { name:"Pontoon boat rental", desc:"Captain your own for the day — cooler, fishing rods, anchor anywhere." },
-    ]},
-    { cat:"Beach activities", color:"#D85A30", items:[
-      { name:"Sandcastle competition", desc:"Teams: you & one son vs. mom & the other. Judge at sundown." },
-      { name:"Sunrise fishing", desc:"Surf casting at dawn — grab live shrimp the night before." },
-      { name:"Beach volleyball", desc:"Find a net or bring one. Teens vs. parents is mandatory." },
-      { name:"Crabbing off the pier", desc:"Chicken necks on a line — bucket of keepers for dinner." },
-      { name:"Shell collecting contest", desc:"Compete for rarest find at sunrise low tide." },
-      { name:"Frisbee & spike ball", desc:"Classic beach sports with surprisingly intense competition." },
-      { name:"Kite flying", desc:"Stunt kites get competitive — great for wind-heavy afternoons." },
-      { name:"Beach bonfire", desc:"Check local rules. S'mores, no screens, actual family conversation." },
-      { name:"Skim boarding", desc:"Cheap boards, low skill floor, high entertainment watching wipeouts." },
-      { name:"Sand sculpting contest", desc:"Go beyond sandcastles — sea creatures, cars, full scenes." },
-    ]},
-    { cat:"Coastal outdoors", color:"#0F6E56", items:[
-      { name:"Nature trail hike", desc:"Maritime forests and coastal preserves are stunning and free." },
-      { name:"Bike the boardwalk", desc:"Rent beach cruisers and explore the whole town." },
-      { name:"Kayak to a barrier island", desc:"Paddle to an undeveloped island for a private beach picnic." },
-      { name:"Bird watching walk", desc:"Coastal areas have wild diversity — pelicans, herons, ospreys." },
-      { name:"Tide pool exploration", desc:"Rocky shores reveal crabs, starfish, and anemones at low tide." },
-      { name:"Lighthouse visit", desc:"Most coastal towns have one — great views, interesting history." },
-      { name:"State park day", desc:"Beach state parks often have trails, boat launches, and uncrowded shores." },
-      { name:"Kayak fishing", desc:"Combine kayaking with rod holders and fish shallow flats." },
-      { name:"Historic fort tour", desc:"Coastal forts have fascinating local stories and great photo ops." },
-      { name:"Shrimping boat tour", desc:"Some towns offer working shrimp boat excursions with a trawl demo." },
-    ]},
-    { cat:"Town & boardwalk", color:"#534AB7", items:[
-      { name:"Boardwalk food crawl", desc:"Hit every spot from taffy to shrimp baskets — no meal plan." },
-      { name:"Street art & murals walk", desc:"Most beach towns have a surprisingly good mural scene." },
-      { name:"Farmers & craft market", desc:"Saturday markets in coastal towns are always worth a browse." },
-      { name:"Outdoor concert or festival", desc:"Check local event calendars — live music is common in season." },
-      { name:"Drive-in movie", desc:"Some beach areas still have them — load up on snacks." },
-      { name:"Waterfront restaurant dinner", desc:"Make it a proper outing — dress code optional, sunset mandatory." },
-      { name:"Local brewery tour", desc:"Craft root beer or local brews with a patio view." },
-      { name:"Souvenir shop challenge", desc:"Everyone gets $10 to find the most absurd souvenir. Vote wins." },
-      { name:"Night fishing from the pier", desc:"Pier fishing after dark is a completely different vibe." },
-      { name:"Hammock afternoon", desc:"String up between palms, books optional, zero agenda required." },
-    ]},
-  ],
-  inside: [
-    { cat:"Action & competitive", color:"#185FA5", items:[
-      { name:"Escape room", desc:"Book as a family — 4 is a perfect team size. Most take 60–90 min." },
-      { name:"Axe throwing", desc:"Walk-in friendly, everyone 13+ can throw. Teens absolutely love it." },
-      { name:"Go-kart racing", desc:"Indoor or covered tracks — bracket it out, handicap the adults." },
-      { name:"Laser tag", desc:"Dark, air-conditioned, and a total reset after a hot beach day." },
-      { name:"Trampoline park", desc:"Jump zones, foam pits, dodgeball courts — good for 2 hrs solid." },
-      { name:"Rock climbing gym", desc:"Many beach towns have one — try bouldering as a family challenge." },
-      { name:"VR arcade", desc:"Full immersion headset games — surprisingly good for groups." },
-      { name:"Bowling night", desc:"Cosmic bowling after dark at a local alley — retro and fun." },
-      { name:"Pinball & arcade", desc:"Load a card, compete on every machine, photographer gets bonus points." },
-      { name:"Mini golf tournament", desc:"Bracket format with ice cream on the line. Take it seriously." },
-    ]},
-    { cat:"Cultural & educational", color:"#639922", items:[
-      { name:"Aquarium visit", desc:"Touch tanks, shark tunnels, usually 2–3 hours well spent." },
-      { name:"Maritime museum", desc:"Ships, navigation history, old maps — more interesting than it sounds." },
-      { name:"Military history museum", desc:"Coastal forts and battles have fascinating local stories." },
-      { name:"Art gallery stroll", desc:"Many coastal towns have serious galleries worth a walk-through." },
-      { name:"Seafood cooking class", desc:"Learn crab cracking, shrimp prep, or Lowcountry cooking hands-on." },
-      { name:"Ghost tour", desc:"Evening walking tours of historic coastal towns — creepy and fun." },
-      { name:"Native history museum", desc:"Coastal tribes have rich histories — often underrated local museums." },
-      { name:"Distillery or winery tour", desc:"Many coastal regions produce spirits — tasting rooms welcome families." },
-      { name:"Ocean documentary night", desc:"Pick a free diving or shark film. The good ones are genuinely wild." },
-      { name:"Planetarium show", desc:"Some larger beach towns have science centers with star shows." },
-    ]},
-    { cat:"Entertainment", color:"#BA7517", items:[
-      { name:"Movie theater", desc:"Pick something none of you have seen — draw straws for genre." },
-      { name:"Comedy club", desc:"Look for early sets — teens enjoy it more than you'd expect." },
-      { name:"Indoor waterpark", desc:"Rainy day backup — indoor parks run slides all week." },
-      { name:"Pub trivia night", desc:"Family-friendly trivia is common at beach restaurants in season." },
-      { name:"Live theater or improv", desc:"Small beach town theaters punch well above their weight." },
-      { name:"Karaoke night", desc:"Private room karaoke — zero embarrassment, maximum memories." },
-      { name:"Pool tournament", desc:"Old-school bar pool on a rainy afternoon — teach the boys." },
-      { name:"Billiards hall", desc:"Classic pool for an hour before dinner — teens pick it up fast." },
-      { name:"Sports bar watch party", desc:"Catch a game with locals — pick a team and root hard." },
-      { name:"Axe throwing league night", desc:"Some venues run competitive nights — sign up as a team." },
-    ]},
-    { cat:"Home base fun", color:"#993556", items:[
-      { name:"Family board game marathon", desc:"Codenames, Catan, Ticket to Ride — no phones for 2 hours." },
-      { name:"Pizza-making competition", desc:"Premade dough, every topping available — judge at the table." },
-      { name:"Family poker tournament", desc:"Low stakes, winner picks tomorrow's dinner restaurant." },
-      { name:"Family Jeopardy night", desc:"Build custom categories with questions about each other." },
-      { name:"Cook a seafood dinner", desc:"Buy fresh from the docks — boil, steam, or fry as a team." },
-      { name:"Movie marathon", desc:"Pick a franchise or director and go back to back all night." },
-      { name:"Sunset deck hour", desc:"Adults drink, teens get fancy sodas — watch the sun drop together." },
-      { name:"Cornhole or ladder ball", desc:"Simple, competitive, goes well with anything off the grill." },
-      { name:"Family scrapbook night", desc:"Print trip photos so far and build a travel journal together." },
-      { name:"Murder mystery dinner", desc:"Buy a boxed kit — assign characters, dress up, solve it over dinner." },
-    ]},
-  ]
-};
+let activities=[], spinning=false, currentAngle=0, tripMode='both';
+const COLORS=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922','#BA7517','#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#3B6D11','#854F0B','#0C447C','#085041'];
+const catColors={'On the water':'#185FA5','Beach & outdoors':'#0F6E56','Town & local':'#534AB7','Food & drink':'#BA7517','Action & games':'#D85A30','Arts & culture':'#639922','Home base':'#993556'};
 
-const COLORS = [
-  '#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922','#BA7517','#185FA5','#0F6E56','#993C1D',
-  '#534AB7','#993556','#3B6D11','#854F0B','#0C447C','#085041','#D85A30','#378ADD','#639922','#534AB7',
-  '#BA7517','#1D9E75','#D4537E','#185FA5','#0F6E56','#993C1D','#7F77DD','#993556','#3B6D11','#378ADD',
-  '#D85A30','#1D9E75','#534AB7','#BA7517','#185FA5','#639922','#D4537E','#0F6E56','#7F77DD','#993C1D',
-];
-
-let mode = 'outside', spinning = false, currentAngle = 0;
-
-function flatList() { return cats[mode].flatMap(c => c.items); }
-
-function setMode(m) {
-  mode = m;
-  document.getElementById('btn-outside').classList.toggle('active', m==='outside');
-  document.getElementById('btn-inside').classList.toggle('active', m==='inside');
-  currentAngle = 0; drawWheel(0);
-  document.getElementById('rname').textContent = 'Spin the wheel to find out!';
-  document.getElementById('rdesc').textContent = '';
-  document.getElementById('rtag').style.display = 'none';
-  document.getElementById('countBadge').textContent = flatList().length + ' activities';
-  renderCats();
+function setMode(m){
+  tripMode=m;
+  ['both','outside','inside'].forEach(k=>document.getElementById('mb-'+k).classList.toggle('active',k===m));
 }
 
-function drawWheel(rotation) {
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const list = flatList(), n = list.length, arc = (2*Math.PI)/n;
-  const cx=170, cy=170, r=160;
+function useGPS(){
+  if(!navigator.geolocation){ document.getElementById('gpsStatus').textContent='GPS not available on this device.'; return; }
+  const btn=document.getElementById('gpsBtn');
+  const st=document.getElementById('gpsStatus');
+  btn.disabled=true; st.textContent='Getting your location...';
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const {latitude:lat,longitude:lon}=pos.coords;
+      st.textContent='Got coordinates, looking up place name...';
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const d=await r.json(); const a=d.address||{};
+        const place=[a.tourism||a.leisure||a.hamlet||a.village||a.town||a.city||a.suburb||'',a.county||'',a.state||''].filter(Boolean).slice(0,2).join(', ');
+        document.getElementById('location').value=place||`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        st.textContent='✓ Location set: '+document.getElementById('location').value;
+      } catch(e){
+        document.getElementById('location').value=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        st.textContent='Using coordinates (name lookup failed).';
+      }
+      btn.disabled=false;
+    },
+    err=>{
+      const msgs={1:'Location access denied — please allow it in your browser.',2:'Location unavailable.',3:'Request timed out.'};
+      st.textContent=msgs[err.code]||'Could not get location.'; btn.disabled=false;
+    },
+    {timeout:10000,enableHighAccuracy:true}
+  );
+}
+
+async function fetchActivities(){
+  const loc=document.getElementById('location').value.trim();
+  if(!loc){document.getElementById('location').focus();return;}
+  const drive=document.getElementById('driveSlider').value;
+  const modeLabel=tripMode==='outside'?'outdoor only':tripMode==='inside'?'indoor only':'both indoor and outdoor';
+  document.getElementById('searchBtn').disabled=true;
+  document.getElementById('resultsWrap').style.display='none';
+  document.getElementById('emptyState').style.display='none';
+  const status=document.getElementById('statusMsg');
+  status.style.display='block'; status.textContent='Searching for activities near '+loc+'...';
+
+  const prompt=`You are a local travel expert. A family of 4 (two parents, two teenage sons aged 14 and 16) is visiting ${loc}. They want family-friendly activities within ${drive} minutes drive.\n\nTrip type: ${modeLabel}\n\nReturn ONLY a JSON array (no markdown, no explanation) of 20-35 activities realistically available within ${drive} min of ${loc}. Small rural coastal towns have very different options than major resort cities — be accurate.\n\nEach item:\n- "name": short activity name (max 5 words)\n- "desc": one sentence tip specific to this location (max 20 words)\n- "cat": one of: "On the water", "Beach & outdoors", "Town & local", "Food & drink", "Action & games", "Arts & culture", "Home base"\n- "type": "outside" or "inside"\n\nOnly include what genuinely exists within ${drive} min. No VR arcades in remote fishing villages.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'';
+    let parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(tripMode!=='both') parsed=parsed.filter(a=>a.type===tripMode);
+    activities=parsed;
+    if(!activities.length){
+      status.style.display='none'; document.getElementById('emptyState').style.display='block';
+      document.getElementById('searchBtn').disabled=false; return;
+    }
+    status.style.display='none'; currentAngle=0;
+    document.getElementById('rname').textContent='Spin to find out!';
+    document.getElementById('rdesc').textContent=''; document.getElementById('rtag').style.display='none';
+    document.getElementById('countHint').textContent=activities.length+' activities found within '+drive+' min of '+loc;
+    drawWheel(0); renderPills();
+    document.getElementById('resultsWrap').style.display='flex';
+    document.getElementById('searchBtn').disabled=false;
+  } catch(e){
+    status.textContent='Something went wrong — please try again.';
+    document.getElementById('searchBtn').disabled=false;
+  }
+}
+
+function drawWheel(rotation){
+  const canvas=document.getElementById('wheel');
+  const ctx=canvas.getContext('2d');
+  const n=activities.length; if(!n)return;
+  const arc=(2*Math.PI)/n,cx=170,cy=170,r=160;
   ctx.clearRect(0,0,340,340);
   for(let i=0;i<n;i++){
-    const start = rotation + i*arc - Math.PI/2;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+arc); ctx.closePath();
-    ctx.fillStyle = COLORS[i%COLORS.length]; ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.stroke();
-    ctx.save(); ctx.translate(cx,cy); ctx.rotate(rotation+i*arc+arc/2-Math.PI/2);
-    ctx.textAlign='right'; ctx.fillStyle='rgba(255,255,255,0.92)';
-    ctx.font='500 10px -apple-system,sans-serif';
-    const lbl = list[i].name.length>15 ? list[i].name.slice(0,14)+'…' : list[i].name;
-    ctx.fillText(lbl, r-8, 4); ctx.restore();
+    const start=rotation+i*arc-Math.PI/2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+arc);ctx.closePath();
+    ctx.fillStyle=catColors[activities[i].cat]||COLORS[i%COLORS.length];ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;ctx.stroke();
+    if(n<=28){
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(rotation+i*arc+arc/2-Math.PI/2);
+      ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,0.92)';
+      ctx.font='500 10px -apple-system,sans-serif';
+      const lbl=activities[i].name.length>14?activities[i].name.slice(0,13)+'…':activities[i].name;
+      ctx.fillText(lbl,r-8,4);ctx.restore();
+    }
   }
-  ctx.beginPath(); ctx.arc(cx,cy,20,0,2*Math.PI);
-  ctx.fillStyle='#fff'; ctx.fill();
-}
-
-function getCat(name) {
-  for(const c of cats[mode]) if(c.items.find(i=>i.name===name)) return c;
-  return null;
+  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
 }
 
 function spin(){
-  if(spinning) return;
-  spinning=true; document.getElementById('spinBtn').disabled=true;
-  const list=flatList(), n=list.length, arc=(2*Math.PI)/n;
+  if(spinning||!activities.length)return;
+  spinning=true;document.getElementById('spinBtn').disabled=true;
+  const n=activities.length,arc=(2*Math.PI)/n;
   const extraSpins=(5+Math.random()*5)*2*Math.PI;
   const targetIdx=Math.floor(Math.random()*n);
   const targetAngle=-(targetIdx*arc)-arc/2;
   const totalRot=extraSpins+((targetAngle-currentAngle%(2*Math.PI)+2*Math.PI*3)%(2*Math.PI));
-  const duration=4000+Math.random()*1200, startTime=performance.now(), startAngle=currentAngle;
+  const duration=4000+Math.random()*1200,startTime=performance.now(),startAngle=currentAngle;
   function easeOut(t){return 1-Math.pow(1-t,3);}
   function animate(now){
     const t=Math.min((now-startTime)/duration,1);
-    currentAngle=startAngle+totalRot*easeOut(t); drawWheel(currentAngle);
+    currentAngle=startAngle+totalRot*easeOut(t);drawWheel(currentAngle);
     if(t<1){requestAnimationFrame(animate);}
     else{
-      spinning=false; document.getElementById('spinBtn').disabled=false;
+      spinning=false;document.getElementById('spinBtn').disabled=false;
       const fa=((-currentAngle%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
-      const picked=list[Math.floor(fa/arc)%n];
+      const picked=activities[Math.floor(fa/arc)%n];
       document.getElementById('rname').textContent=picked.name;
       document.getElementById('rdesc').textContent=picked.desc;
-      const c=getCat(picked.name);
-      if(c){
-        const tag=document.getElementById('rtag');
-        tag.textContent=c.cat;
-        tag.style.cssText='display:inline-block;background:'+c.color+'22;color:'+c.color+';font-size:11px;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600;border:1px solid '+c.color+'44';
-      }
+      const col=catColors[picked.cat]||'#378ADD';
+      const tag=document.getElementById('rtag');
+      tag.textContent=(picked.type==='outside'?'☀️ ':'🏠 ')+picked.cat;
+      tag.style.cssText='display:inline-block;background:'+col+'22;color:'+col+';font-size:11px;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600;border:1px solid '+col+'44';
     }
   }
   requestAnimationFrame(animate);
 }
 
-function renderCats(){
-  document.getElementById('catSection').innerHTML = cats[mode].map(c=>`
-    <div class="cat-title" style="color:${c.color}">${c.cat}</div>
-    <div class="pill-grid">${c.items.map(i=>`<div class="pill">${i.name}</div>`).join('')}</div>
-  `).join('');
+function renderPills(){
+  const bycat={};
+  activities.forEach(a=>{if(!bycat[a.cat])bycat[a.cat]=[];bycat[a.cat].push(a);});
+  document.getElementById('pillSection').innerHTML=Object.entries(bycat).map(([cat,items])=>{
+    const col=catColors[cat]||'#888';
+    return `<div class="cat-label" style="color:${col}">${cat}</div><div class="pill-grid">${items.map(a=>`<div class="pill">${a.name}</div>`).join('')}</div>`;
+  }).join('');
 }
-
-drawWheel(0); renderCats();
 </script>
 </body>
 </html>
