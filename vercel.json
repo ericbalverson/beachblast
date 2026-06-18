@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/activities.js": {
+      "memory": 128,
+      "maxDuration": 30
+    }
+  }
+}
