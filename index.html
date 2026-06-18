@@ -49,8 +49,8 @@
   .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s; }
   .spin-btn.pulse { animation: spinPulse 1.8s ease-in-out infinite; }
   @keyframes spinPulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); transform: scale(1); }
-    50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); transform: scale(1.04); }
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); }
+    50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); }
   }
   .spin-btn:hover { background: var(--primary-dark); }
   .spin-btn:active { transform: scale(0.98); }
