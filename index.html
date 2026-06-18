@@ -125,8 +125,7 @@ function setMode(m){
 
 function useGPS(){
   if(!navigator.geolocation){ document.getElementById('gpsStatus').textContent='GPS not available on this device.'; return; }
-  const btn=document.getElementById('gpsBtn');
-  const st=document.getElementById('gpsStatus');
+  const btn=document.getElementById('gpsBtn'), st=document.getElementById('gpsStatus');
   btn.disabled=true; st.textContent='Getting your location...';
   navigator.geolocation.getCurrentPosition(
     async pos=>{
@@ -166,7 +165,11 @@ async function fetchActivities(){
   const prompt=`You are a local travel expert. A family of 4 (two parents, two teenage sons aged 14 and 16) is visiting ${loc}. They want family-friendly activities within ${drive} minutes drive.\n\nTrip type: ${modeLabel}\n\nReturn ONLY a JSON array (no markdown, no explanation) of 20-35 activities realistically available within ${drive} min of ${loc}. Small rural coastal towns have very different options than major resort cities — be accurate.\n\nEach item:\n- "name": short activity name (max 5 words)\n- "desc": one sentence tip specific to this location (max 20 words)\n- "cat": one of: "On the water", "Beach & outdoors", "Town & local", "Food & drink", "Action & games", "Arts & culture", "Home base"\n- "type": "outside" or "inside"\n\nOnly include what genuinely exists within ${drive} min. No VR arcades in remote fishing villages.`;
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/activities',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:prompt}]})
+    });
     const data=await res.json();
     const text=data.content?.find(b=>b.type==='text')?.text||'';
     let parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
@@ -184,14 +187,13 @@ async function fetchActivities(){
     document.getElementById('resultsWrap').style.display='flex';
     document.getElementById('searchBtn').disabled=false;
   } catch(e){
-    status.textContent='Something went wrong — please try again.';
+    status.textContent='Something went wrong: '+e.message;
     document.getElementById('searchBtn').disabled=false;
   }
 }
 
 function drawWheel(rotation){
-  const canvas=document.getElementById('wheel');
-  const ctx=canvas.getContext('2d');
+  const canvas=document.getElementById('wheel'), ctx=canvas.getContext('2d');
   const n=activities.length; if(!n)return;
   const arc=(2*Math.PI)/n,cx=170,cy=170,r=160;
   ctx.clearRect(0,0,340,340);
