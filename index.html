@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beach Blast — Family Activity Roulette</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0c3a6b 0%, #1565a8 40%, #0f8a6e 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+  h1 { color: #fff; font-size: 2rem; font-weight: 600; margin-bottom: 0.25rem; text-align: center; }
+  .subtitle { color: rgba(255,255,255,0.75); font-size: 1rem; margin-bottom: 1.5rem; text-align: center; }
+  .card { background: rgba(255,255,255,0.97); border-radius: 18px; padding: 1.75rem; width: 100%; max-width: 560px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); }
+  .toggle-bar { display: flex; border: 1.5px solid #ddd; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+  .toggle-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: 500; border: none; background: transparent; color: #666; cursor: pointer; transition: background 0.15s, color 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .toggle-btn.active { background: #1565a8; color: #fff; }
+  .wheel-wrap { position: relative; display: flex; justify-content: center; margin-bottom: 1.25rem; }
+  .needle { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 30px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
+  canvas { border-radius: 50%; display: block; }
+  .spin-btn { display: block; width: 100%; padding: 13px; font-size: 16px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; transition: background 0.15s, transform 0.1s; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .spin-btn:hover { background: #0c4a8a; }
+  .spin-btn:active { transform: scale(0.98); }
+  .spin-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .result-card { background: #f0f6ff; border: 1.5px solid #b3d0f7; border-radius: 12px; padding: 1.25rem; text-align: center; min-height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin-bottom: 1.5rem; }
+  .result-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+  .result-text { font-size: 22px; font-weight: 600; color: #1565a8; }
+  .result-desc { font-size: 14px; color: #555; }
+  .list-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 7px; }
+  .activity-pill { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #dde; background: #f7f9ff; color: #444; text-align: center; }
+  footer { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 1.5rem; text-align: center; }
+</style>
+</head>
+<body>
+<h1>🏖️ Beach Blast</h1>
+<p class="subtitle">Family Activity Roulette — spin to decide what's next</p>
+<div class="card">
+  <div class="toggle-bar">
+    <button class="toggle-btn active" id="btn-outside" onclick="setMode('outside')">☀️ Outside</button>
+    <button class="toggle-btn" id="btn-inside" onclick="setMode('inside')">🏠 Inside</button>
+  </div>
+  <div class="wheel-wrap">
+    <div class="needle"></div>
+    <canvas id="wheel" width="340" height="340"></canvas>
+  </div>
+  <button class="spin-btn" id="spinBtn" onclick="spin()">▶ Spin the Wheel</button>
+  <div class="result-card">
+    <span class="result-label">Your activity</span>
+    <span class="result-text" id="resultText">Spin the wheel to find out!</span>
+    <span class="result-desc" id="resultDesc"></span>
+  </div>
+  <div class="list-title" id="listTitle">All outside activities</div>
+  <div class="activity-grid" id="activityGrid"></div>
+</div>
+<footer>Built with ❤️ for the Alverson beach week</footer>
+
+<script>
+const activities = {
+  outside: [
+    { name: "Boogie boarding", desc: "Rent boards and take turns catching waves — even beginners get hooked fast." },
+    { name: "Sandcastle battle", desc: "Split into teams: you & one son vs. mom & the other. Judge at sundown." },
+    { name: "Sunrise fishing", desc: "Surf fishing at dawn — grab live shrimp from a bait shop the night before." },
+    { name: "Beach volleyball", desc: "Many beaches have nets set up. Bring your own or join a pickup game." },
+    { name: "Kayak tour", desc: "Rent sit-on-top kayaks and explore a tidal creek or calm inlet." },
+    { name: "Jet ski rental", desc: "Teens will love this — most rentals are 30-60 min and guides go with you." },
+    { name: "Shell collecting", desc: "Challenge everyone to find the best specimen. Sunrise low tide is prime." },
+    { name: "Dolphin watch cruise", desc: "Short boat tours often guarantee sightings — magical for everyone." },
+    { name: "Frisbee & spike ball", desc: "Classic beach sports. Spike ball especially — teens vs. parents." },
+    { name: "Stand-up paddleboard", desc: "Calmer days are perfect. Race each other across the inlet." },
+    { name: "Bike the boardwalk", desc: "Rent beach cruisers and explore town — great for the whole group." },
+    { name: "Parasailing", desc: "Teens old enough to go up together — incredible views, 10 min ride." },
+    { name: "Beach bonfire", desc: "Check local ordinances. S'mores, stories, and no screens for an hour." },
+    { name: "Crabbing at low tide", desc: "Drop lines off a pier with chicken necks. Bucket of keepers for dinner." },
+    { name: "Nature trail hike", desc: "Find a coastal preserve or maritime forest — quiet, scenic, free." },
+    { name: "Kite flying", desc: "Pick up a stunt kite — teens can get competitive with tricks." },
+  ],
+  inside: [
+    { name: "Escape room", desc: "Book as a family — most beach towns have at least one. Teams of 4 are ideal." },
+    { name: "Axe throwing", desc: "Many spots take walk-ins — everyone 13+ can throw. Teens love it." },
+    { name: "Bowling night", desc: "Retro fun — find a local alley and do cosmic bowling after dark." },
+    { name: "Seafood cooking class", desc: "Some resorts and culinary shops offer hands-on crab/shrimp sessions." },
+    { name: "Aquarium visit", desc: "Usually a few hours of exhibits — touch tanks and shark tunnels included." },
+    { name: "Go-kart racing", desc: "Indoor or covered tracks are fast and competitive. Handicap the parents." },
+    { name: "Mini golf tournament", desc: "Bracket format — loser buys ice cream. Make it a real event." },
+    { name: "Movie at the house", desc: "Pick a film no one has seen, make popcorn, draw straws for movie choice." },
+    { name: "Family board game night", desc: "Bring Codenames, Ticket to Ride, or Catan — no phones for 2 hours." },
+    { name: "Trivia night", desc: "Some beach bars do family-friendly pub trivia — great team challenge." },
+    { name: "Pinball / arcade", desc: "Load up a card and compete on classics — highest score wins." },
+    { name: "Waterpark day", desc: "Check nearby indoor waterparks — good backup for rainy days." },
+    { name: "Pizza-making competition", desc: "Grab premade dough and toppings — each person makes their own creation." },
+    { name: "Museum or history tour", desc: "Maritime or Civil War history museums are surprisingly interesting." },
+    { name: "Poker or card tournament", desc: "Deal in the whole family — low stakes, winner picks tomorrow's dinner." },
+    { name: "Family Jeopardy", desc: "Build a custom trivia game with questions about each family member." },
+  ]
+};
+
+const colors = [
+  '#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E',
+  '#639922','#BA7517','#185FA5','#0F6E56','#993C1D',
+  '#534AB7','#993556','#3B6D11','#854F0B','#0C447C','#085041'
+];
+
+let mode = 'outside';
+let spinning = false;
+let currentAngle = 0;
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-outside').classList.toggle('active', m === 'outside');
+  document.getElementById('btn-inside').classList.toggle('active', m === 'inside');
+  document.getElementById('listTitle').textContent = 'All ' + m + ' activities';
+  currentAngle = 0;
+  drawWheel(0);
+  document.getElementById('resultText').textContent = 'Spin the wheel to find out!';
+  document.getElementById('resultDesc').textContent = '';
+  renderGrid();
+}
+
+function drawWheel(rotation) {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const list = activities[mode];
+  const n = list.length;
+  const arc = (2 * Math.PI) / n;
+  const cx = 170, cy = 170, r = 160;
+  ctx.clearRect(0, 0, 340, 340);
+  for (let i = 0; i < n; i++) {
+    const start = rotation + i * arc - Math.PI / 2;
+    const end = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation + i * arc + arc / 2 - Math.PI / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.font = '500 11px -apple-system, sans-serif';
+    const label = list[i].name.length > 14 ? list[i].name.slice(0, 13) + '…' : list[i].name;
+    ctx.fillText(label, r - 10, 4);
+    ctx.restore();
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  const list = activities[mode];
+  const n = list.length;
+  const arc = (2 * Math.PI) / n;
+  const extraSpins = (5 + Math.random() * 5) * 2 * Math.PI;
+  const targetIndex = Math.floor(Math.random() * n);
+  const targetAngle = -(targetIndex * arc) - arc / 2;
+  const totalRotation = extraSpins + ((targetAngle - currentAngle % (2 * Math.PI) + 2 * Math.PI * 3) % (2 * Math.PI));
+  const duration = 4000 + Math.random() * 1000;
+  const startTime = performance.now();
+  const startAngle = currentAngle;
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const angle = startAngle + totalRotation * easeOut(t);
+    currentAngle = angle;
+    drawWheel(angle);
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      const finalAngle = ((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      const idx = Math.floor(finalAngle / arc) % n;
+      const picked = list[idx];
+      document.getElementById('resultText').textContent = picked.name;
+      document.getElementById('resultDesc').textContent = picked.desc;
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function renderGrid() {
+  const list = activities[mode];
+  const grid = document.getElementById('activityGrid');
+  grid.innerHTML = list.map(a => '<div class="activity-pill">' + a.name + '</div>').join('');
+}
+
+drawWheel(0);
+renderGrid();
+</script>
+</body>
+</html>
