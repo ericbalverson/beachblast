@@ -7,26 +7,27 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0c3a6b 0%, #1565a8 40%, #0f8a6e 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+  :root { --primary: #1565a8; --secondary: #0f8a6e; --primary-dark: #0c4a8a; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 70%, black) 0%, var(--primary) 40%, var(--secondary) 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; transition: background 1.2s ease; }
   h1 { color: #fff; font-size: 2rem; font-weight: 600; margin-bottom: 0.25rem; text-align: center; }
   .subtitle { color: rgba(255,255,255,0.75); font-size: 1rem; margin-bottom: 1.5rem; text-align: center; }
   .card { background: rgba(255,255,255,0.97); border-radius: 18px; padding: 1.75rem; width: 100%; max-width: 600px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 14px; }
   .field-label { font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block; }
   .loc-row { display: flex; gap: 8px; align-items: center; }
   .loc-row input { flex: 1; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 9px; font-size: 14px; outline: none; transition: border-color 0.15s; }
-  .loc-row input:focus { border-color: #1565a8; }
+  .loc-row input:focus { border-color: var(--primary); }
   .gps-btn { padding: 0 14px; height: 38px; font-size: 13px; border-radius: 9px; border: 1.5px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: background 0.15s; }
   .gps-btn:hover { background: #eaeaea; }
   .gps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .gps-status { font-size: 11px; color: #999; min-height: 16px; margin-top: 4px; }
   .slider-row { display: flex; align-items: center; gap: 10px; }
-  .slider-row input[type=range] { flex: 1; accent-color: #1565a8; }
-  .slider-val { font-size: 14px; font-weight: 600; color: #1565a8; min-width: 55px; }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--primary); }
+  .slider-val { font-size: 14px; font-weight: 600; color: var(--primary); min-width: 55px; }
   .mode-bar { display: flex; border: 1.5px solid #ddd; border-radius: 9px; overflow: hidden; }
   .mbtn { flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 500; border: none; background: transparent; color: #666; cursor: pointer; transition: background 0.15s, color 0.15s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-  .mbtn.active { background: #1565a8; color: #fff; }
-  .search-btn { padding: 12px 0; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, transform 0.1s; }
-  .search-btn:hover { background: #0c4a8a; }
+  .mbtn.active { background: var(--primary); color: #fff; }
+  .search-btn { padding: 12px 0; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.3s, transform 0.1s; }
+  .search-btn:hover { background: var(--primary-dark); }
   .search-btn:active { transform: scale(0.98); }
   .search-btn:disabled { background: #aaa; cursor: not-allowed; }
   .status { font-size: 13px; color: #666; text-align: center; padding: 0.75rem 0; display: none; }
@@ -35,13 +36,13 @@
   .wheel-wrap { position: relative; display: flex; justify-content: center; }
   .needle { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 28px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
   canvas { border-radius: 50%; display: block; }
-  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: #1565a8; color: #fff; cursor: pointer; transition: background 0.15s, transform 0.1s; }
-  .spin-btn:hover { background: #0c4a8a; }
+  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s; }
+  .spin-btn:hover { background: var(--primary-dark); }
   .spin-btn:active { transform: scale(0.98); }
   .spin-btn:disabled { background: #aaa; cursor: not-allowed; }
-  .result-card { width: 100%; background: #f0f6ff; border: 1.5px solid #b3d0f7; border-radius: 12px; padding: 1.25rem; text-align: center; min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+  .result-card { width: 100%; background: var(--result-bg, #f0f6ff); border: 1.5px solid var(--result-border, #b3d0f7); border-radius: 12px; transition: background 0.3s, border-color 0.3s; padding: 1.25rem; text-align: center; min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
   .rlabel { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
-  .rname { font-size: 22px; font-weight: 700; color: #1565a8; }
+  .rname { font-size: 22px; font-weight: 700; color: var(--primary); transition: color 0.3s; }
   .rdesc { font-size: 14px; color: #555; margin-top: 3px; }
   .rtag { font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; font-weight: 600; display: none; }
   .cat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 10px 0 5px; }
@@ -52,8 +53,9 @@
 </style>
 </head>
 <body>
-<h1>🏖️ Beach Blast</h1>
-<p class="subtitle">AI-powered family activity finder for coastal trips</p>
+<h1 id="pageIcon">🏖️ Beach Blast</h1>
+<p class="subtitle" id="pageSubtitle">AI-powered family activity finder for coastal trips</p>
+<p class="subtitle" id="pageTagline" style="display:none;margin-top:-1rem;font-style:italic;"></p>
 
 <div class="card">
   <div>
@@ -116,7 +118,62 @@
 <script>
 let activities=[], spinning=false, currentAngle=0, tripMode='both';
 const COLORS=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922','#BA7517','#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#3B6D11','#854F0B','#0C447C','#085041'];
-const catColors={'On the water':'#185FA5','Beach & outdoors':'#0F6E56','Town & local':'#534AB7','Food & drink':'#BA7517','Action & games':'#D85A30','Arts & culture':'#639922','Home base':'#993556'};
+let currentCatColors={'On the water':'#185FA5','Beach & outdoors':'#0F6E56','Town & local':'#534AB7','Food & drink':'#BA7517','Action & games':'#D85A30','Arts & culture':'#639922','Home base':'#993556'};
+
+function hexToRgb(hex){
+  const m=hex.replace('#','').match(/.{1,2}/g);
+  return m?m.map(x=>parseInt(x,16)):[21,101,168];
+}
+function darken(hex,amt){
+  const [r,g,b]=hexToRgb(hex);
+  const f=c=>Math.max(0,Math.round(c*(1-amt)));
+  return '#'+[f(r),f(g),f(b)].map(c=>c.toString(16).padStart(2,'0')).join('');
+}
+function lighten(hex,amt){
+  const [r,g,b]=hexToRgb(hex);
+  const f=c=>Math.min(255,Math.round(c+(255-c)*amt));
+  return '#'+[f(r),f(g),f(b)].map(c=>c.toString(16).padStart(2,'0')).join('');
+}
+
+function applyTheme(theme){
+  if(!theme) return;
+  const root=document.documentElement.style;
+  if(theme.primaryColor){
+    root.setProperty('--primary', theme.primaryColor);
+    root.setProperty('--primary-dark', darken(theme.primaryColor, 0.25));
+    root.setProperty('--result-bg', lighten(theme.primaryColor, 0.93));
+    root.setProperty('--result-border', lighten(theme.primaryColor, 0.7));
+  }
+  if(theme.secondaryColor){
+    root.setProperty('--secondary', theme.secondaryColor);
+  }
+  const icon=theme.icon||'🏖️';
+  document.getElementById('pageIcon').textContent=icon+' Beach Blast';
+  document.getElementById('pageSubtitle').textContent=theme.region
+    ? 'AI-powered family activity finder — '+theme.region
+    : 'AI-powered family activity finder for coastal trips';
+  const tagline=document.getElementById('pageTagline');
+  if(theme.tagline){
+    tagline.textContent=theme.tagline;
+    tagline.style.display='block';
+  } else {
+    tagline.style.display='none';
+  }
+  currentCatColors = buildCatColors(theme.primaryColor, theme.secondaryColor);
+}
+
+function buildCatColors(primary, secondary){
+  const p=primary||'#185FA5', s=secondary||'#0F6E56';
+  return {
+    'On the water': p,
+    'Beach & outdoors': s,
+    'Town & local': darken(p,0.15),
+    'Food & drink': '#BA7517',
+    'Action & games': '#D85A30',
+    'Arts & culture': darken(s,0.1),
+    'Home base': '#993556'
+  };
+}
 
 function setMode(m){
   tripMode=m;
@@ -162,7 +219,11 @@ async function fetchActivities(){
   const status=document.getElementById('statusMsg');
   status.style.display='block'; status.textContent='Searching for activities near '+loc+'...';
 
-  const prompt=`You are a local travel expert. A family of 4 (two parents, two teenage sons aged 14 and 16) is visiting ${loc}. They want family-friendly activities within ${drive} minutes drive.\n\nTrip type: ${modeLabel}\n\nReturn ONLY a JSON array (no markdown, no explanation) of 20-35 activities realistically available within ${drive} min of ${loc}. Small rural coastal towns have very different options than major resort cities — be accurate.\n\nEach item:\n- "name": short activity name (max 5 words)\n- "desc": one sentence tip specific to this location (max 20 words)\n- "cat": one of: "On the water", "Beach & outdoors", "Town & local", "Food & drink", "Action & games", "Arts & culture", "Home base"\n- "type": "outside" or "inside"\n\nOnly include what genuinely exists within ${drive} min. No VR arcades in remote fishing villages.`;
+  const today = new Date();
+  const monthName = today.toLocaleString('en-US', { month: 'long' });
+
+  const prompt=`You are a local travel expert. A family of 4 (two parents, two teenage sons aged 14 and 16) is visiting ${loc} in ${monthName}. They want family-friendly activities within ${drive} minutes drive.\n\nTrip type: ${modeLabel}\n\nReturn ONLY a single JSON object (no markdown, no explanation) with this exact shape:\n\n{\n  "theme": {\n    "region": "short descriptive region name, e.g. 'Florida Gulf Coast' or 'Outer Banks'",\n    "season": "one of: spring, summer, fall, winter — based on ${monthName}",\n    "tagline": "a short evocative phrase about this place/season, max 8 words, e.g. 'Gulf breezes and stone crab season'",
+    "primaryColor": "a hex color capturing the regional water/sky tone, e.g. '#1565a8' for tropical turquoise or '#2c5f6f' for cooler northern coast",\n    "secondaryColor": "a complementary hex color capturing local land/vegetation/season tone, e.g. '#0f8a6e' for palms or '#8a6d3b' for autumn marsh grass",\n    "icon": "one emoji that best captures this location and season, e.g. 🏖️ 🦀 🍂 ⛵ 🌊 🐚 🦩 🏄"\n  },\n  "activities": [\n    {\n      "name": "short activity name (max 5 words)",\n      "desc": "one sentence tip specific to this location, ideally season-aware (max 20 words)",\n      "cat": "one of: On the water, Beach & outdoors, Town & local, Food & drink, Action & games, Arts & culture, Home base",\n      "type": "outside or inside"\n    }\n  ]\n}\n\nInclude 20-35 activities in the array. Small rural coastal towns have very different options than major resort cities — be accurate. Consider what's actually in season in ${monthName} (e.g. stone crab season, snowbird season, hurricane season, spring break crowds, off-season quiet). Only include activities that genuinely exist within ${drive} min of ${loc}. No VR arcades in remote fishing villages.`;
 
   try{
     const res=await fetch('/api/activities',{
@@ -174,19 +235,38 @@ async function fetchActivities(){
     if(data.error){ throw new Error(typeof data.error==='object'?JSON.stringify(data.error):data.error); }
     const text=data.text||'';
     if(!text) throw new Error('Empty response from AI.');
-    const jsonMatch=text.match(/\[[\s\S]*\]/);
-    let parsed;
-    if(jsonMatch){
-      parsed=JSON.parse(jsonMatch[0]);
-    } else {
-      const startIdx=text.indexOf('[');
-      if(startIdx===-1) throw new Error('No activity list found in response: '+text.slice(0,200));
-      let raw=text.slice(startIdx);
-      const lastComplete=raw.lastIndexOf('},');
-      if(lastComplete===-1) throw new Error('Response was cut off before any complete activity: '+text.slice(0,200));
-      raw=raw.slice(0,lastComplete+1)+']';
-      parsed=JSON.parse(raw);
+
+    let theme=null, parsed;
+    const objMatch=text.match(/\{[\s\S]*\}/);
+    if(objMatch){
+      try{
+        const full=JSON.parse(objMatch[0]);
+        theme=full.theme||null;
+        parsed=full.activities||[];
+      }catch(e){
+        parsed=null;
+      }
     }
+
+    if(!parsed){
+      const themeMatch=text.match(/"theme"\s*:\s*\{[^}]*\}/);
+      if(themeMatch){ try{ theme=JSON.parse('{'+themeMatch[0]+'}').theme; }catch(e){} }
+      const arrMatch=text.match(/\[[\s\S]*\]/);
+      if(arrMatch){
+        try{ parsed=JSON.parse(arrMatch[0]); }catch(e){ parsed=null; }
+      }
+      if(!parsed){
+        const startIdx=text.indexOf('[');
+        if(startIdx===-1) throw new Error('No activity list found in response: '+text.slice(0,200));
+        let raw=text.slice(startIdx);
+        const lastComplete=raw.lastIndexOf('},');
+        if(lastComplete===-1) throw new Error('Response was cut off before any complete activity: '+text.slice(0,200));
+        raw=raw.slice(0,lastComplete+1)+']';
+        parsed=JSON.parse(raw);
+      }
+    }
+
+    if(theme) applyTheme(theme);
     if(tripMode!=='both') parsed=parsed.filter(a=>a.type===tripMode);
     activities=parsed;
     if(!activities.length){
@@ -214,7 +294,7 @@ function drawWheel(rotation){
   for(let i=0;i<n;i++){
     const start=rotation+i*arc-Math.PI/2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+arc);ctx.closePath();
-    ctx.fillStyle=catColors[activities[i].cat]||COLORS[i%COLORS.length];ctx.fill();
+    ctx.fillStyle=currentCatColors[activities[i].cat]||COLORS[i%COLORS.length];ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;ctx.stroke();
     if(n<=28){
       ctx.save();ctx.translate(cx,cy);ctx.rotate(rotation+i*arc+arc/2-Math.PI/2);
@@ -247,7 +327,7 @@ function spin(){
       const picked=activities[Math.floor(fa/arc)%n];
       document.getElementById('rname').textContent=picked.name;
       document.getElementById('rdesc').textContent=picked.desc;
-      const col=catColors[picked.cat]||'#378ADD';
+      const col=currentCatColors[picked.cat]||'#378ADD';
       const tag=document.getElementById('rtag');
       tag.textContent=(picked.type==='outside'?'☀️ ':'🏠 ')+picked.cat;
       tag.style.cssText='display:inline-block;background:'+col+'22;color:'+col+';font-size:11px;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600;border:1px solid '+col+'44';
@@ -260,7 +340,7 @@ function renderPills(){
   const bycat={};
   activities.forEach(a=>{if(!bycat[a.cat])bycat[a.cat]=[];bycat[a.cat].push(a);});
   document.getElementById('pillSection').innerHTML=Object.entries(bycat).map(([cat,items])=>{
-    const col=catColors[cat]||'#888';
+    const col=currentCatColors[cat]||'#888';
     return `<div class="cat-label" style="color:${col}">${cat}</div><div class="pill-grid">${items.map(a=>`<div class="pill">${a.name}</div>`).join('')}</div>`;
   }).join('');
 }
