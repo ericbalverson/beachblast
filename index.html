@@ -33,9 +33,19 @@
   .status { font-size: 13px; color: #666; text-align: center; padding: 0.75rem 0; display: none; }
   .results-wrap { display: none; flex-direction: column; align-items: center; gap: 1rem; width: 100%; }
   .count-hint { font-size: 12px; color: #999; text-align: center; }
-  .wheel-wrap { position: relative; display: flex; justify-content: center; }
-  .needle { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 28px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
-  canvas { border-radius: 50%; display: block; }
+  .reel-frame { position: relative; width: 100%; max-width: 360px; display: flex; align-items: center; justify-content: center; }
+  .reel-window { position: relative; width: 100%; height: 220px; overflow: hidden; border-radius: 14px; background: #f4f6fa; border: 2px solid #dde3ee; box-shadow: inset 0 8px 14px -8px rgba(0,0,0,0.15), inset 0 -8px 14px -8px rgba(0,0,0,0.15); }
+  .reel-strip { position: absolute; top: 0; left: 0; width: 100%; will-change: transform; }
+  .reel-card { height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 1.25rem; text-align: center; box-sizing: border-box; }
+  .reel-card-name { font-size: 16px; font-weight: 700; color: #2c2c2a; line-height: 1.25; }
+  .reel-card-cat { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .reel-center-line { position: absolute; top: 50%; left: 0; right: 0; height: 76px; transform: translateY(-50%); border-top: 2px solid var(--primary); border-bottom: 2px solid var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); pointer-events: none; }
+  .reel-window::before, .reel-window::after { content: ''; position: absolute; left: 0; right: 0; height: 60px; z-index: 2; pointer-events: none; }
+  .reel-window::before { top: 0; background: linear-gradient(to bottom, #f4f6fa, transparent); }
+  .reel-window::after { bottom: 0; background: linear-gradient(to top, #f4f6fa, transparent); }
+  .reel-arrow { position: absolute; font-size: 13px; color: var(--primary); top: 50%; transform: translateY(-50%); z-index: 3; }
+  .reel-arrow-left { left: -4px; }
+  .reel-arrow-right { right: -4px; }
   .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s; }
   .spin-btn:hover { background: var(--primary-dark); }
   .spin-btn:active { transform: scale(0.98); }
@@ -95,11 +105,15 @@
 
 <div class="results-wrap" id="resultsWrap">
   <p class="count-hint" id="countHint"></p>
-  <div class="wheel-wrap">
-    <div class="needle"></div>
-    <canvas id="wheel" width="340" height="340"></canvas>
+  <div class="reel-frame">
+    <div class="reel-window">
+      <div class="reel-strip" id="reelStrip"></div>
+      <div class="reel-center-line"></div>
+    </div>
+    <div class="reel-arrow reel-arrow-left">▶</div>
+    <div class="reel-arrow reel-arrow-right">◀</div>
   </div>
-  <button class="spin-btn" id="spinBtn" onclick="spin()">▶ Spin the Wheel</button>
+  <button class="spin-btn" id="spinBtn" onclick="spin()">▶ Spin</button>
   <div class="result-card">
     <span class="rlabel">Your activity</span>
     <span class="rname" id="rname">Spin to find out!</span>
@@ -116,7 +130,7 @@
 <footer>Built with ❤️ by the Alversons</footer>
 
 <script>
-let activities=[], spinning=false, currentAngle=0, tripMode='both';
+let activities=[], spinning=false, tripMode='both';
 const COLORS=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922','#BA7517','#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#3B6D11','#854F0B','#0C447C','#085041'];
 let currentCatColors={'On the water':'#185FA5','Outdoors & nature':'#0F6E56','Town & local':'#534AB7','Food & drink':'#BA7517','Action & games':'#D85A30','Arts & culture':'#639922','Home base':'#993556'};
 
@@ -273,11 +287,11 @@ async function fetchActivities(){
       status.style.display='none'; document.getElementById('emptyState').style.display='block';
       document.getElementById('searchBtn').disabled=false; return;
     }
-    status.style.display='none'; currentAngle=0;
+    status.style.display='none';
     document.getElementById('rname').textContent='Spin to find out!';
     document.getElementById('rdesc').textContent=''; document.getElementById('rtag').style.display='none';
     document.getElementById('countHint').textContent=activities.length+' activities found within '+drive+' min of '+loc;
-    drawWheel(0); renderPills();
+    renderReel(); renderPills();
     document.getElementById('resultsWrap').style.display='flex';
     document.getElementById('searchBtn').disabled=false;
   } catch(e){
@@ -286,51 +300,66 @@ async function fetchActivities(){
   }
 }
 
-function drawWheel(rotation){
-  const canvas=document.getElementById('wheel'), ctx=canvas.getContext('2d');
-  const n=activities.length; if(!n)return;
-  const arc=(2*Math.PI)/n,cx=170,cy=170,r=160;
-  ctx.clearRect(0,0,340,340);
-  for(let i=0;i<n;i++){
-    const start=rotation+i*arc-Math.PI/2;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+arc);ctx.closePath();
-    ctx.fillStyle=currentCatColors[activities[i].cat]||COLORS[i%COLORS.length];ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;ctx.stroke();
-    if(n<=28){
-      ctx.save();ctx.translate(cx,cy);ctx.rotate(rotation+i*arc+arc/2-Math.PI/2);
-      ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,0.92)';
-      ctx.font='500 10px -apple-system,sans-serif';
-      const lbl=activities[i].name.length>14?activities[i].name.slice(0,13)+'…':activities[i].name;
-      ctx.fillText(lbl,r-8,4);ctx.restore();
-    }
-  }
-  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+const CARD_H = 76;
+let reelOrder = [];
+
+function renderReel(){
+  const n = activities.length;
+  if(!n) return;
+  reelOrder = activities.map((a,i)=>i);
+  const strip = document.getElementById('reelStrip');
+  strip.style.transform = 'translateY(0px)';
+  strip.innerHTML = reelOrder.map(i=>cardHTML(activities[i])).join('');
+  const window_ = document.querySelector('.reel-window');
+  const offset = (window_.clientHeight/2) - (CARD_H/2);
+  strip.style.top = offset + 'px';
+}
+
+function cardHTML(a){
+  const col = currentCatColors[a.cat] || '#378ADD';
+  return `<div class="reel-card"><span class="reel-card-name">${a.name}</span><span class="reel-card-cat" style="color:${col}">${a.cat}</span></div>`;
 }
 
 function spin(){
-  if(spinning||!activities.length)return;
-  spinning=true;document.getElementById('spinBtn').disabled=true;
-  const n=activities.length,arc=(2*Math.PI)/n;
-  const extraSpins=(5+Math.random()*5)*2*Math.PI;
-  const targetIdx=Math.floor(Math.random()*n);
-  const targetAngle=-(targetIdx*arc)-arc/2;
-  const totalRot=extraSpins+((targetAngle-currentAngle%(2*Math.PI)+2*Math.PI*3)%(2*Math.PI));
-  const duration=4000+Math.random()*1200,startTime=performance.now(),startAngle=currentAngle;
-  function easeOut(t){return 1-Math.pow(1-t,3);}
+  if(spinning || !activities.length) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+
+  const n = activities.length;
+  const targetIdx = Math.floor(Math.random()*n);
+
+  const loops = 3;
+  const totalCards = loops*n + targetIdx;
+
+  const strip = document.getElementById('reelStrip');
+  const extended = [];
+  for(let l=0; l<loops+1; l++){
+    for(let i=0; i<n; i++) extended.push(activities[i]);
+  }
+  strip.innerHTML = extended.slice(0, totalCards+1).map(cardHTML).join('');
+
+  const targetY = -(totalCards * CARD_H);
+  const duration = 3200 + Math.random()*900;
+  const startTime = performance.now();
+
+  function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+
   function animate(now){
-    const t=Math.min((now-startTime)/duration,1);
-    currentAngle=startAngle+totalRot*easeOut(t);drawWheel(currentAngle);
-    if(t<1){requestAnimationFrame(animate);}
-    else{
-      spinning=false;document.getElementById('spinBtn').disabled=false;
-      const fa=((-currentAngle%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
-      const picked=activities[Math.floor(fa/arc)%n];
-      document.getElementById('rname').textContent=picked.name;
-      document.getElementById('rdesc').textContent=picked.desc;
-      const col=currentCatColors[picked.cat]||'#378ADD';
-      const tag=document.getElementById('rtag');
-      tag.textContent=(picked.type==='outside'?'☀️ ':'🏠 ')+picked.cat;
-      tag.style.cssText='display:inline-block;background:'+col+'22;color:'+col+';font-size:11px;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600;border:1px solid '+col+'44';
+    const t = Math.min((now-startTime)/duration, 1);
+    const y = targetY * easeOutCubic(t);
+    strip.style.transform = 'translateY(' + y + 'px)';
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      const picked = activities[targetIdx];
+      document.getElementById('rname').textContent = picked.name;
+      document.getElementById('rdesc').textContent = picked.desc;
+      const col = currentCatColors[picked.cat] || '#378ADD';
+      const tag = document.getElementById('rtag');
+      tag.textContent = (picked.type==='outside' ? '☀️ ' : '🏠 ') + picked.cat;
+      tag.style.cssText = 'display:inline-block;background:'+col+'22;color:'+col+';font-size:11px;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600;border:1px solid '+col+'44';
     }
   }
   requestAnimationFrame(animate);
