@@ -171,11 +171,14 @@ async function fetchActivities(){
       body:JSON.stringify({messages:[{role:'user',content:prompt}]})
     });
     const data=await res.json();
-    if(data.error){ throw new Error(data.error+(data.raw?' — '+data.raw:'')); }
+    if(data.error){ throw new Error(typeof data.error==='object'?JSON.stringify(data.error):data.error); }
     if(data.type==='error'){ throw new Error(data.error?.message||JSON.stringify(data)); }
     const text=data.content?.find(b=>b.type==='text')?.text||'';
-    if(!text) throw new Error('Empty response from API. Check your API key in Vercel environment variables.');
-    let parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(!text) throw new Error('Empty response. Raw: '+JSON.stringify(data).slice(0,200));
+    console.log('AI raw response:', text.slice(0,500));
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if(!jsonMatch) throw new Error('No JSON array found in response: '+text.slice(0,200));
+    let parsed=JSON.parse(jsonMatch[0]);
     if(tripMode!=='both') parsed=parsed.filter(a=>a.type===tripMode);
     activities=parsed;
     if(!activities.length){
