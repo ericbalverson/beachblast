@@ -47,13 +47,13 @@
   .reel-arrow { position: absolute; font-size: 13px; color: var(--primary); top: 50%; transform: translateY(-50%); z-index: 3; }
   .reel-arrow-left { left: -4px; }
   .reel-arrow-right { right: -4px; }
-  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s; }
+  .spin-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 40px; font-size: 15px; font-weight: 600; border-radius: 10px; border: 2px solid rgba(255,255,255,0.85); background: var(--primary); color: #fff; cursor: pointer; transition: background 0.3s, transform 0.1s, border-color 0.3s; box-shadow: 0 3px 10px rgba(0,0,0,0.25); }
   .spin-btn.pulse { animation: spinPulse 1.8s ease-in-out infinite; }
   @keyframes spinPulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); }
-    50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); }
+    0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.25), 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); }
+    50% { box-shadow: 0 3px 10px rgba(0,0,0,0.25), 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); }
   }
-  .spin-btn:hover { background: var(--primary-dark); }
+  .spin-btn:hover { background: var(--primary-dark); border-color: #fff; }
   .spin-btn:active { transform: scale(0.98); }
   .spin-btn:disabled { background: #aaa; cursor: not-allowed; }
   .result-card { width: 100%; background: var(--result-bg, #f0f6ff); border: 1.5px solid var(--result-border, #b3d0f7); border-radius: 12px; transition: background 0.3s, border-color 0.3s; padding: 1.25rem; text-align: center; min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
