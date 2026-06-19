@@ -90,6 +90,19 @@
     .rdesc { font-size: 13px; }
     .pill-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
   }
+
+  /* Tablets / phablets — between phone and desktop */
+  @media (min-width: 481px) and (max-width: 820px) {
+    .card { max-width: 520px; }
+    .reel-frame { max-width: 400px; }
+  }
+
+  /* Touch devices of any size: bigger tap targets, no hover-dependent affordances */
+  @media (hover: none) and (pointer: coarse) {
+    .gps-btn, .mbtn, .search-btn, .spin-btn, .directions-link { min-height: 44px; }
+    input[type="text"], input[type="date"] { min-height: 44px; }
+    .spin-btn:hover { background: var(--primary); border-color: rgba(255,255,255,0.85); }
+  }
 </style>
 </head>
 <body>
@@ -225,6 +238,8 @@ function buildCatColors(primary, secondary){
     'Home base': '#993556'
   };
 }
+
+const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 (function initDate(){
   const d = new Date();
