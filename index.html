@@ -298,33 +298,65 @@ async function fetchActivities(){
     if(!text) throw new Error('Empty response from AI.');
 
     let theme=null, parsed;
-    const objMatch=text.match(/\{[\s\S]*\}/);
+
+    function tryParse(str){
+      try{ return JSON.parse(str); }catch(e){ return null; }
+    }
+
+    function cleanJsonText(str){
+      // Strip control characters that break JSON.parse but sometimes sneak into AI output
+      return str.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+    }
+
+    function salvageActivities(str){
+      // Last resort: pull out individual {...} objects and keep only the ones that parse cleanly
+      const found=[];
+      const re=/\{[^{}]*\}/g;
+      let m;
+      while((m=re.exec(str))!==null){
+        const obj=tryParse(m[0]);
+        if(obj && obj.name && obj.cat) found.push(obj);
+      }
+      return found;
+    }
+
+    const cleanedText = cleanJsonText(text);
+
+    const objMatch = cleanedText.match(/\{[\s\S]*\}/);
     if(objMatch){
-      try{
-        const full=JSON.parse(objMatch[0]);
-        theme=full.theme||null;
-        parsed=full.activities||[];
-      }catch(e){
-        parsed=null;
+      const full = tryParse(objMatch[0]);
+      if(full){
+        theme = full.theme || null;
+        parsed = full.activities || [];
       }
     }
 
     if(!parsed){
-      const themeMatch=text.match(/"theme"\s*:\s*\{[^}]*\}/);
-      if(themeMatch){ try{ theme=JSON.parse('{'+themeMatch[0]+'}').theme; }catch(e){} }
-      const arrMatch=text.match(/\[[\s\S]*\]/);
-      if(arrMatch){
-        try{ parsed=JSON.parse(arrMatch[0]); }catch(e){ parsed=null; }
+      const themeMatch = cleanedText.match(/"theme"\s*:\s*\{[^}]*\}/);
+      if(themeMatch){ const t=tryParse('{'+themeMatch[0]+'}'); if(t) theme=t.theme; }
+
+      const arrMatch = cleanedText.match(/\[[\s\S]*\]/);
+      if(arrMatch) parsed = tryParse(arrMatch[0]);
+    }
+
+    if(!parsed){
+      const startIdx = cleanedText.indexOf('[');
+      if(startIdx !== -1){
+        let raw = cleanedText.slice(startIdx);
+        const lastComplete = raw.lastIndexOf('},');
+        if(lastComplete !== -1){
+          raw = raw.slice(0, lastComplete+1) + ']';
+          parsed = tryParse(raw);
+        }
       }
-      if(!parsed){
-        const startIdx=text.indexOf('[');
-        if(startIdx===-1) throw new Error('No activity list found in response: '+text.slice(0,200));
-        let raw=text.slice(startIdx);
-        const lastComplete=raw.lastIndexOf('},');
-        if(lastComplete===-1) throw new Error('Response was cut off before any complete activity: '+text.slice(0,200));
-        raw=raw.slice(0,lastComplete+1)+']';
-        parsed=JSON.parse(raw);
-      }
+    }
+
+    if(!parsed || !parsed.length){
+      parsed = salvageActivities(cleanedText);
+    }
+
+    if(!parsed || !parsed.length){
+      throw new Error('Could not read activity list from response: '+text.slice(0,200));
     }
 
     if(theme) applyTheme(theme);

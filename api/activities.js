@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: userMessage }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 4000 }
+          generationConfig: { temperature: 0.6, maxOutputTokens: 4000, responseMimeType: 'application/json' }
         })
       }
     );
